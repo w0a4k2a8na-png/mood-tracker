@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>気分・体調記録アプリ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 min-h-screen">
+
+    <div class="container mx-auto max-w-4xl p-6">
+        <header class="text-center mb-10">
+            <h1 class="text-3xl font-bold text-indigo-600">🌤️ 気分・体調記録アプリ</h1>
+            <p class="text-gray-500 mt-2">日々のコンディションをワンタップで記録・可視化</p>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <section class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                <h2 class="text-xl font-semibold mb-4 text-gray-700">本日の記録</h2>
+                <form action="/add" method="POST" class="space-y-6">
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-2">今日の気分は？</label>
+                        <div class="flex justify-between items-center max-w-xs mx-auto">
+                            <label class="text-center cursor-pointer">
+                                <input type="radio" name="mood" value="1" class="sr-only peer" required>
+                                <div class="text-3xl filter grayscale peer-checked:grayscale-0 transform peer-checked:scale-125 transition-all">😢</div>
+                                <span class="text-xs text-gray-400">最悪</span>
+                            </label>
+                            <label class="text-center cursor-pointer">
+                                <input type="radio" name="mood" value="2" class="sr-only peer">
+                                <div class="text-3xl filter grayscale peer-checked:grayscale-0 transform peer-checked:scale-125 transition-all">😕</div>
+                                <span class="text-xs text-gray-400">微妙</span>
+                            </label>
+                            <label class="text-center cursor-pointer">
+                                <input type="radio" name="mood" value="3" class="sr-only peer" checked>
+                                <div class="text-3xl filter grayscale peer-checked:grayscale-0 transform peer-checked:scale-125 transition-all">😐</div>
+                                <span class="text-xs text-gray-400">普通</span>
+                            </label>
+                            <label class="text-center cursor-pointer">
+                                <input type="radio" name="mood" value="4" class="sr-only peer">
+                                <div class="text-3xl filter grayscale peer-checked:grayscale-0 transform peer-checked:scale-125 transition-all">🙂</div>
+                                <span class="text-xs text-gray-400">良い</span>
+                            </label>
+                            <label class="text-center cursor-pointer">
+                                <input type="radio" name="mood" value="5" class="sr-only peer">
+                                <div class="text-3xl filter grayscale peer-checked:grayscale-0 transform peer-checked:scale-125 transition-all">😆</div>
+                                <span class="text-xs text-gray-400">最高</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-2">体調は？</label>
+                        <div class="flex gap-4">
+                            <label class="flex-1">
+                                <input type="radio" name="condition" value="良い" class="sr-only peer" checked>
+                                <div class="text-center py-2 border rounded-xl cursor-pointer peer-checked:bg-green-50 peer-checked:border-green-400 peer-checked:text-green-600 transition-all">良い</div>
+                            </label>
+                            <label class="flex-1">
+                                <input type="radio" name="condition" value="普通" class="sr-only peer">
+                                <div class="text-center py-2 border rounded-xl cursor-pointer peer-checked:bg-yellow-50 peer-checked:border-yellow-400 peer-checked:text-yellow-600 transition-all">普通</div>
+                            </label>
+                            <label class="flex-1">
+                                <input type="radio" name="condition" value="悪い" class="sr-only peer">
+                                <div class="text-center py-2 border rounded-xl cursor-pointer peer-checked:bg-red-50 peer-checked:border-red-400 peer-checked:text-red-600 transition-all">悪い</div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="memo" class="block text-sm font-medium text-gray-600 mb-2">一言メモ</label>
+                        <textarea id="memo" name="memo" rows="3" class="w-full border rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-indigo-400" placeholder="嬉しかったことや、体調の微変化など"></textarea>
+                    </div>
+
+                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl transition-colors shadow-md shadow-indigo-100">
+                        記録する
+                    </button>
+                </form>
+            </section>
+
+            <section class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between">
+                <div>
+                    <h2 class="text-xl font-semibold mb-4 text-gray-700">気分推移（直近7件）</h2>
+                    <div class="w-full h-64">
+                        <canvas id="moodChart"></canvas>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <section class="mt-10 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+            <h2 class="text-xl font-semibold mb-4 text-gray-700">過去の履歴</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b text-gray-400 text-sm">
+                            <th class="pb-3 font-medium">日付</th>
+                            <th class="pb-3 font-medium">気分</th>
+                            <th class="pb-3 font-medium">体調</th>
+                            <th class="pb-3 font-medium">メモ</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y text-gray-600">
+                        {% if not records %}
+                        <tr>
+                            <td colspan="4" class="py-8 text-center text-gray-400">まだデータがありません。最初の記録を追加してみましょう！</td>
+                        </tr>
+                        {% endif %}
+                        {% for record in records %}
+                        <tr>
+                            <td class="py-4 text-sm font-medium">{{ record[0] }}</td>
+                            <td class="py-4 text-2xl">
+                                {% if record[1] == 1 %}😢
+                                {% elif record[1] == 2 %}😕
+                                {% elif record[1] == 3 %}😐
+                                {% elif record[1] == 4 %}🙂
+                                {% elif record[1] == 5 %}😆
+                                {% endif %}
+                            </td>
+                            <td class="py-4">
+                                <span class="px-2.5 py-1 rounded-full text-xs font-semibold
+                                    {% if record[2] == '良い' %}bg-green-50 text-green-700
+                                    {% elif record[2] == '普通' %}bg-yellow-50 text-yellow-700
+                                    {% else %}bg-red-50 text-red-700{% endif %}">
+                                    {{ record[2] }}
+                                </span>
+                            </td>
+                            <td class="py-4 text-sm">{{ record[3] or '-' }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            fetch('/api/data')
+                .then(response => response.json())
+                .then(data => {
+                    const ctx = document.getElementById('moodChart').getContext('2d');
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: data.labels,
+                            datasets: [{
+                                label: '気分の波',
+                                data: data.moods,
+                                borderColor: 'rgb(99, 102, 241)',
+                                backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                                borderWidth: 3,
+                                tension: 0.3,
+                                fill: true,
+                                pointRadius: 5,
+                                pointBackgroundColor: 'rgb(99, 102, 241)'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    min: 1,
+                                    max: 5,
+                                    ticks: {
+                                        stepSize: 1,
+                                        callback: function(value) {
+                                            const emojiMap = { 1: '😢', 2: '😕', 3: '😐', 4: '🙂', 5: '😆' };
+                                            return emojiMap[value] || value;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                });
+        });
+    </script>
+</body>
+</html>
