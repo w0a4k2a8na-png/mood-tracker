@@ -29,6 +29,7 @@
 
 ```bash
 docker-compose up --build -d
+```
 
 ## 📸 動作画面と使い方
 
